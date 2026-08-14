@@ -14,35 +14,33 @@ claude mcp list 2>&1 | grep -q "wechat.*Connected" && echo "MCP_OK" || echo "MCP
 test -f ~/.claude/skills/wechat-decrypt/key.txt && echo "KEY_OK" || echo "KEY_MISSING"
 ```
 
-| 状态            | 行动                                                                                |
-| ------------- | --------------------------------------------------------------------------------- |
-| `MCP_MISSING` | macOS `bash setup.sh` / Windows `powershell -File setup.ps1`，告知「重启 Claude Code」   |
+| 状态 | 行动 |
+|------|------|
+| `MCP_MISSING` | macOS `bash setup.sh` / Windows `powershell -File setup.ps1`，告知「重启 Claude Code」 |
 | `KEY_MISSING` | 执行「密钥提取」对应平台流程（Windows 提 key 后还需 `python scripts\windows\decrypt_all.py` 解密全库到明文） |
-| 全部 OK         | 直接使用 MCP 工具                                                                       |
+| 全部 OK | 直接使用 MCP 工具 |
 
 > **Windows 自检**（PowerShell，对齐上面 macOS 三项）:
-> 
 > ```powershell
 > python -c "import frida, Crypto; print('DEPS_OK')"   # 缺 → pip install frida pycryptodome
 > Test-Path "$env:USERPROFILE\.claude\skills\wechat-decrypt\key_windows.txt"   # 缺 → extract_raw_key.py 提 key
 > Test-Path "$env:USERPROFILE\.claude\skills\wechat-decrypt\decrypted"         # 缺 → decrypt_all.py 解密全库
 > ```
-> 
 > 缺哪项跑对应步骤:deps→`setup.ps1`、key→`extract_raw_key.py`、明文库→`decrypt_all.py`。
 
 不要跳过自检。
 
 ## Agent 触发规则
 
-| 用户意图                                             | 行动                                                                                                                                                                           |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "看我微信" "最近聊天" "谁找我" "有什么消息"                      | MCP: `wechat_recent_messages` / `wechat_chat_summary`                                                                                                                        |
-| "搜XX的聊天" "和XX提到"                                 | MCP: `wechat_search_messages`                                                                                                                                                |
-| "列出会话" "有哪些群"                                    | MCP: `wechat_list_chats`                                                                                                                                                     |
-| "读和XX的聊天"                                        | MCP: `wechat_read_chat`                                                                                                                                                      |
+| 用户意图 | 行动 |
+|----------|------|
+| "看我微信" "最近聊天" "谁找我" "有什么消息" | MCP: `wechat_recent_messages` / `wechat_chat_summary` |
+| "搜XX的聊天" "和XX提到" | MCP: `wechat_search_messages` |
+| "列出会话" "有哪些群" | MCP: `wechat_list_chats` |
+| "读和XX的聊天" | MCP: `wechat_read_chat` |
 | "导出和XX的聊天" "导出XX到桌面" | 先做①模型检查（见下），再 `python3 scripts/common/export_chat.py <contact> [--start/--end/--year] [-o path]`（不传日期=全部历史；模型在则默认转写，`--no-transcribe` 可关；语音转写结果持久缓存 voice_cache.json，二次导出秒回） |
-| "转写XX的语音" "语音转文字" "把语音导成文字"                      | `python3 scripts/common/export_chat.py <contact> --transcribe`，或单独 `python3 scripts/common/transcribe_db.py <contact> -o map.json`                                           |
-| "微信更新了" "重新破解" "密钥失效"                            | 执行下方「密钥提取」对应平台流程                                                                                                                                                             |
+| "转写XX的语音" "语音转文字" "把语音导成文字" | `python3 scripts/common/export_chat.py <contact> --transcribe`，或单独 `python3 scripts/common/transcribe_db.py <contact> -o map.json` |
+| "微信更新了" "重新破解" "密钥失效" | 执行下方「密钥提取」对应平台流程 |
 
 ### ① 导出前置——语音转写模型检查（默认执行）
 
@@ -52,22 +50,22 @@ test -f ~/.claude/skills/wechat-decrypt/key.txt && echo "KEY_OK" || echo "KEY_MI
 test -d ~/.cache/huggingface/hub/models--mlx-community--whisper-large-v3-mlx && echo MODEL_OK || echo MODEL_MISSING
 ```
 
-| 结果              | 行动                                                                                              |
-| --------------- | ----------------------------------------------------------------------------------------------- |
-| `MODEL_OK`      | 导出**默认开启语音转写**（脚本检测到模型即自动转，无需 `--transcribe`；用户明确不要才加 `--no-transcribe`）                        |
+| 结果 | 行动 |
+|------|------|
+| `MODEL_OK` | 导出**默认开启语音转写**（脚本检测到模型即自动转，无需 `--transcribe`；用户明确不要才加 `--no-transcribe`） |
 | `MODEL_MISSING` | **先问用户是否安装**（whisper-large-v3 ~3GB，纯离线一次性）。装→加 `--transcribe`（首次自动下载并转写）；不装→普通导出，语音保留 `[Audio]` |
 
 脚本侧已内置同逻辑（模型在→默认转，不在→留 `[Audio]` 并提示）。但 `MODEL_MISSING` 时 Agent 必须主动问，别擅自下 3GB。
 
 ## MCP 工具（注册名 `wechat`）
 
-| 工具                       | 参数                           | 用途             |
-| ------------------------ | ---------------------------- | -------------- |
-| `wechat_list_chats`      | 无                            | 所有会话（群名+备注已解析） |
-| `wechat_read_chat`       | contact, limit(50), days(7)  | 特定对话           |
-| `wechat_search_messages` | keyword, days(30), limit(50) | 全文搜索           |
-| `wechat_recent_messages` | days(3), limit(100)          | 最近动态           |
-| `wechat_chat_summary`    | days(3)                      | 结构化摘要 + 待办     |
+| 工具 | 参数 | 用途 |
+|------|------|------|
+| `wechat_list_chats` | 无 | 所有会话（群名+备注已解析） |
+| `wechat_read_chat` | contact, limit(50), days(7) | 特定对话 |
+| `wechat_search_messages` | keyword, days(30), limit(50) | 全文搜索 |
+| `wechat_recent_messages` | days(3), limit(100) | 最近动态 |
+| `wechat_chat_summary` | days(3) | 结构化摘要 + 待办 |
 
 `[我]` = 用户发的，`[对方]` = 联系人发的。
 
@@ -95,10 +93,10 @@ python3 "$SKILL_DIR/scripts/common/query.py" search 关键词 --json
 
 ## 数据库路径
 
-| 平台      | 路径                                                                                |
-| ------- | --------------------------------------------------------------------------------- |
-| macOS   | `~/Library/Containers/com.tencent.xinWeChat/.../xwechat_files/{wxid}/db_storage/` |
-| Windows | `~/Documents/xwechat_files/{wxid}/db_storage/`                                    |
+| 平台 | 路径 |
+|------|------|
+| macOS | `~/Library/Containers/com.tencent.xinWeChat/.../xwechat_files/{wxid}/db_storage/` |
+| Windows | `~/Documents/xwechat_files/{wxid}/db_storage/` |
 
 ---
 
@@ -130,7 +128,6 @@ python3 "$SKILL_DIR/scripts/common/query.py" search 关键词 --json
 **现状（2026-06-06 UTM 实测跑通）**：提 key→解密全库→MCP/导出/语音转写，与 macOS 同能力。message_0 解出 99 会话/1384 消息。全流程见 `docs/2026-06-06-windows-raw-key-journey.md`。
 
 ### Agent 执行流程
-
 1. 登录微信
 2. **提 key**：`python scripts\windows\extract_raw_key.py` → 按提示**桌面手动重启微信**（必须；schtasks/SSH 起的是空壳、不读 db）→ 脚本自动 race-attach + hook sha512 抓 raw key + 验证，写入 `key_windows.txt`
 3. **解密全库**：`python scripts\windows\decrypt_all.py` → 用 raw key 把 db_storage 所有库解密到 `decrypted\{wxid}_<device>\db_storage\`（明文）
@@ -139,11 +136,9 @@ python3 "$SKILL_DIR/scripts/common/query.py" search 关键词 --json
 单库验证/调试用 `scripts\windows\decrypt_read.py <raw_key>`（只解 message_0 验证）。
 
 ### 提 key 原理（sha512 入口 hook + HMAC ipad）
-
 **核心**：raw key/K1 在内存被三重保护（AES-NI 轮密钥/用后清除/secure mem，内存 brute 全失败），但 SQLCipher 派生 key 走 **PBKDF2-HMAC-SHA512**，HMAC 构造 ipad block 那一刻是 key 的**明文** `key XOR 0x36`（后 96 字节恒 0x36）——绕过所有保护直取。
 `extract_raw_key.py` 自包含：**自动定位** sha512 入口（搜 K 常量 `0x428a2f98d728ae22`→xref→反汇编，不硬编码地址，换微信版本也行）+ race-attach（赶在开 db 前）+ hook 入口（rdx=input block）+ 检测 ipad + 自动验证（`PBKDF2→AES page1` 出头=raw key 通用 / 直接 `AES` 出头=K1 单库）。启动 `PBKDF2(raw,salt)` 暴露 raw key；运行时 page-MAC 只暴露 mac_key（无用）→ 必须 race 赶**启动**。
 **frida 在 ARM 模拟（xtajit 翻译 x64）下能 hook 微信内部 x64 函数**（1127万次验证）；spawn 不兼容用 race-attach。
-
 - 数据路径：`C:\Users\<用户>\Documents\xwechat_files\{wxid}_<device>\db_storage\`。`wechat-dump-rs` 被 DMCA 封，本方法已替代。
 - 开发期全套攻关脚本（定位/brute/失败记录）在 langlobal 开发仓，运行只需 `extract_raw_key.py`+`decrypt_all.py`。
 

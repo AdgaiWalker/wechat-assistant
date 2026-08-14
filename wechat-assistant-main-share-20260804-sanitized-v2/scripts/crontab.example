@@ -1,0 +1,26 @@
+# wechat-assistant local cron example.
+# Install with:
+#   crontab scripts/crontab.example
+#
+# Logs and JSON outputs are written under ~/wechat-assistant.
+
+SHELL=/bin/zsh
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+WECHAT_ASSISTANT_CONFIG=~/wechat-assistant/config.yaml
+
+# Keep collector.db fresh. Runs every 30 minutes.
+*/30 * * * * ~/path/to/wechat-assistant/scripts/run_local.sh sync >> ~/wechat-assistant/logs/sync.log 2>&1
+
+# Extract todo candidates at summary times. Hermes delivery also uses 10/15/20.
+0 10,15,20 * * * ~/path/to/wechat-assistant/scripts/run_local.sh todos >> ~/wechat-assistant/logs/todos.log 2>&1
+
+# Extract calendar candidates every 30 minutes, offset from sync.
+10,40 * * * * ~/path/to/wechat-assistant/scripts/run_local.sh calendar >> ~/wechat-assistant/logs/calendar.log 2>&1
+
+# Hourly trending snapshot.
+15 * * * * ~/path/to/wechat-assistant/scripts/run_local.sh trending >> ~/wechat-assistant/logs/trending.log 2>&1
+
+# Daily batch jobs.
+0 9 * * * ~/path/to/wechat-assistant/scripts/run_local.sh digest >> ~/wechat-assistant/logs/digest.log 2>&1
+30 10 * * * ~/path/to/wechat-assistant/scripts/run_local.sh tech >> ~/wechat-assistant/logs/tech.log 2>&1
+0 23 * * * ~/path/to/wechat-assistant/scripts/run_local.sh preference >> ~/wechat-assistant/logs/preference.log 2>&1
