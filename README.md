@@ -9,5 +9,6 @@
 
 ## 使用
 
+- **安装** → `INSTALL.md`
 - **Mac 助手** → `mac-wechat-assistant/README.md`
 - **Windows 解密** → `windows-wechat-decrypt/WINDOWS_README.md`
