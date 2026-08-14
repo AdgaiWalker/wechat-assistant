@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>微信聊天数据看板</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#121a2b;--panel2:#172238;--line:#263550;--text:#eef4ff;--muted:#8fa1bd;--blue:#65a8ff;--cyan:#49d3c5;--orange:#ffb454;--pink:#f287b7;--green:#75d49b;--shadow:0 18px 50px rgba(0,0,0,.24)}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 85% -10%,#1d355e 0,#0b1020 42%);color:var(--text);font:14px/1.5 Inter,"Microsoft YaHei",system-ui,sans-serif;min-width:320px}
+    .wrap{max-width:1320px;margin:0 auto;padding:34px 28px 48px}.eyebrow{color:var(--cyan);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}.head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:26px}.head h1{font-size:34px;line-height:1.1;letter-spacing:-.04em;margin:7px 0 8px}.sub{color:var(--muted);margin:0}.stamp{color:var(--muted);text-align:right;font-size:12px}.stamp strong{display:block;color:var(--text);font-size:15px;margin-bottom:5px}
+    .grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:16px}.card{background:linear-gradient(145deg,rgba(23,34,56,.96),rgba(15,23,40,.96));border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}.kpi-label{color:var(--muted);font-size:12px}.kpi-value{font-size:28px;font-weight:750;letter-spacing:-.04em;margin:8px 0 3px}.kpi-note{font-size:12px;color:var(--muted)}
+    .main{grid-template-columns:1.55fr 1fr;margin-bottom:16px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.section-title h2{font-size:15px;margin:0}.section-title span{color:var(--muted);font-size:12px}.chart{width:100%;height:260px}.chart svg{width:100%;height:100%;display:block}.axis{fill:var(--muted);font-size:11px}.gridline{stroke:var(--line);stroke-width:1}.trend-line{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.trend-area{fill:url(#area)}.point{fill:var(--blue);stroke:var(--panel);stroke-width:2}
+    .hours{display:grid;grid-template-columns:repeat(24,1fr);align-items:end;height:220px;gap:5px;border-bottom:1px solid var(--line);padding:10px 4px 0}.hour{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}.bar{width:100%;max-width:20px;min-height:3px;background:linear-gradient(180deg,var(--cyan),#277f98);border-radius:4px 4px 0 0}.hour label{font-size:10px;color:var(--muted)}.hour:nth-child(3n) label{color:var(--text)}.hour-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:11px}.hour-meta strong{color:var(--text)}
+    .lower{grid-template-columns:.9fr 1.1fr}.bars{display:grid;gap:12px}.row{display:grid;grid-template-columns:94px 1fr 58px;align-items:center;gap:10px}.row-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dfe8f7;font-size:12px}.track{height:9px;background:#0e1627;border-radius:20px;overflow:hidden}.fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--cyan))}.row-value{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}.contact-bars .fill{background:linear-gradient(90deg,var(--orange),var(--pink))}.contact-bars .row{grid-template-columns:210px 1fr 64px}.contact-bars .row-label{font-size:13px}
+    .insight{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:16px}.insight div{background:rgba(18,26,43,.96);padding:18px}.insight b{display:block;color:var(--orange);font-size:18px;margin-bottom:4px}.insight span{color:var(--muted);font-size:12px}.foot{color:var(--muted);font-size:11px;text-align:right;margin-top:18px}
+    @media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.main,.lower{grid-template-columns:1fr}.contact-bars .row{grid-template-columns:minmax(130px,210px) 1fr 60px}}
+    @media(max-width:600px){.wrap{padding:24px 15px 38px}.head{display:block}.head h1{font-size:28px}.stamp{text-align:left;margin-top:15px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:24px}.card{padding:15px}.insight{grid-template-columns:1fr}.contact-bars .row{grid-template-columns:120px 1fr 52px}.row{grid-template-columns:76px 1fr 52px}.hours{gap:2px}.hour label{font-size:9px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <div><div class="eyebrow">WeChat / Conversation Intelligence</div><h1>微信聊天数据看板</h1><p class="sub">账号：哆啦2049 · 统计已解密聊天数据库中的全部消息</p></div>
+      <div class="stamp"><strong id="range"></strong><span>最后更新：2026-08-09</span></div>
+    </header>
+
+    <section class="grid kpis" aria-label="核心指标">
+      <div class="card"><div class="kpi-label">消息总量</div><div class="kpi-value" id="total"></div><div class="kpi-note">条</div></div>
+      <div class="card"><div class="kpi-label">活跃会话</div><div class="kpi-value" id="chats"></div><div class="kpi-note">117 个有消息会话</div></div>
+      <div class="card"><div class="kpi-label">活跃天数</div><div class="kpi-value" id="active"></div><div class="kpi-note">覆盖统计区间</div></div>
+      <div class="card"><div class="kpi-label">我发送</div><div class="kpi-value" id="sent"></div><div class="kpi-note" id="sent-rate"></div></div>
+      <div class="card"><div class="kpi-label">峰值日</div><div class="kpi-value" id="peak-day"></div><div class="kpi-note" id="peak-day-note"></div></div>
+    </section>
+
+    <section class="grid main">
+      <article class="card"><div class="section-title"><h2>每日消息量</h2><span>按本地时间统计</span></div><div class="chart"><svg id="trend" viewBox="0 0 800 260" role="img" aria-label="每日消息量趋势"></svg></div></article>
+      <article class="card"><div class="section-title"><h2>活跃时段</h2><span>24 小时分布</span></div><div class="hours" id="hours" role="img" aria-label="每小时消息量"></div><div class="hour-meta"><span>峰值时段 <strong id="peak-hour"></strong></span><span>日均 <strong id="avg"></strong> 条</span></div></article>
+    </section>
+
+    <section class="grid lower">
+      <article class="card"><div class="section-title"><h2>消息类型</h2><span>共 10 类</span></div><div class="bars" id="types"></div></article>
+      <article class="card"><div class="section-title"><h2>高频会话排行</h2><span>按消息数 Top 15</span></div><div class="bars contact-bars" id="contacts"></div></article>
+    </section>
+
+    <section class="insight" aria-label="摘要洞察">
+      <div><b id="insight-one"></b><span>前四个群聊贡献了绝大多数消息量，聊天活跃高度集中。</span></div>
+      <div><b id="insight-two"></b><span>消息以接收为主，可优先关注高频群聊的通知和文件。</span></div>
+      <div><b id="insight-three"></b><span>上午 10 点是最活跃的单小时窗口，适合安排集中处理。</span></div>
+    </section>
+    <div class="foot">数据来源：项目工具解密后的 message_0.db · 仅在本机展示</div>
+  </main>
+  <script>
+    const data={
+      total:54305,dateStart:'2026-07-09',dateEnd:'2026-08-09',activeDays:32,activeChats:117,
+      sent:3894,received:50411,peakDay:['2026-08-06',4978],peakHour:[10,4851],
+      daily:[['07-09',2681],['07-10',4167],['07-11',2011],['07-12',1058],['07-13',548],['07-14',652],['07-15',651],['07-16',403],['07-17',307],['07-18',2205],['07-19',1076],['07-20',790],['07-21',638],['07-22',331],['07-23',199],['07-24',3333],['07-25',2524],['07-26',608],['07-27',2578],['07-28',2096],['07-29',271],['07-30',1051],['07-31',828],['08-01',258],['08-02',179],['08-03',3337],['08-04',2868],['08-05',4745],['08-06',4978],['08-07',4656],['08-08',2145],['08-09',133]],
+      hourly:[2211,1248,365,176,121,193,164,637,1361,3172,4851,3786,2589,3277,3846,3848,3612,3473,3213,2741,2110,2393,2314,2604],
+      types:[['文本',36236],['链接/文件',8996],['图片',3933],['表情',3404],['系统消息',1260],['语音',240],['视频',174],['通话',52],['位置',8],['名片',2]],
+      contacts:[['西门聪明蛋的朋友们 （1 群）',17180],['Codex 零号远征队',9956],['🔥unFIX中文社区',5778],['西门聪明蛋的朋友们（2群）',5676],['聪明蛋AI自媒体大弟子',2058],['日本語単語組📚',1866],['第二届焦外述影社团（小群）',1183],['三号楼送饭群',932],['泥太甜瓜🍈',622],['鸡米奈 3 号远征队',580],['2025级姚茹馨',538],['shameless',496],['学院精英汇聚地-校园集市32',481],['点子共促',446],['海哥和小伙伴们的专属会员群',429]]
+    };
+    const fmt=n=>n.toLocaleString('zh-CN');
+    document.getElementById('range').textContent=data.dateStart+' — '+data.dateEnd;
+    document.getElementById('total').textContent=fmt(data.total);document.getElementById('chats').textContent=fmt(data.activeChats);document.getElementById('active').textContent=data.activeDays+' 天';
+    document.getElementById('sent').textContent=fmt(data.sent);document.getElementById('sent-rate').textContent=(data.sent/data.total*100).toFixed(1)+'% 的消息由我发送';
+    document.getElementById('peak-day').textContent=fmt(data.peakDay[1]);document.getElementById('peak-day-note').textContent=data.peakDay[0]+' · 全期最高';
+    document.getElementById('peak-hour').textContent=String(data.peakHour[0]).padStart(2,'0')+':00 · '+fmt(data.peakHour[1])+' 条';document.getElementById('avg').textContent=fmt(Math.round(data.total/data.activeDays));
+    const svg=document.getElementById('trend'), W=800,H=260, pad={l:42,r:16,t:16,b:32}, max=Math.max(...data.daily.map(d=>d[1])), x=i=>pad.l+i*(W-pad.l-pad.r)/(data.daily.length-1), y=v=>(H-pad.b)-v/max*(H-pad.t-pad.b);
+    let s='<defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#65a8ff" stop-opacity=".34"/><stop offset="1" stop-color="#65a8ff" stop-opacity="0"/></linearGradient></defs>';
+    [0,.25,.5,.75,1].forEach(q=>{const yy=y(max*q);s+='<line class="gridline" x1="'+pad.l+'" x2="'+(W-pad.r)+'" y1="'+yy+'" y2="'+yy+'"/><text class="axis" x="'+(pad.l-8)+'" y="'+(yy+4)+'" text-anchor="end">'+fmt(Math.round(max*q))+'</text>'});
+    const pts=data.daily.map((d,i)=>x(i)+','+y(d[1])).join(' '), area=pad.l+','+(H-pad.b)+' '+pts+' '+(W-pad.r)+','+(H-pad.b);s+='<polygon class="trend-area" points="'+area+'"/><polyline class="trend-line" points="'+pts+'"/>';
+    data.daily.forEach((d,i)=>{if(i%4===0||i===data.daily.length-1)s+='<text class="axis" x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle">'+d[0]+'</text>';s+='<circle class="point" cx="'+x(i)+'" cy="'+y(d[1])+'" r="'+(d[1]===max?5:3)+'"><title>'+d[0]+'：'+fmt(d[1])+' 条</title></circle>'});svg.innerHTML=s;
+    const hourMax=Math.max(...data.hourly), hours=document.getElementById('hours');data.hourly.forEach((n,i)=>{const el=document.createElement('div');el.className='hour';el.innerHTML='<div class="bar" style="height:'+Math.max(3,n/hourMax*100)+'%" title="'+String(i).padStart(2,'0')+':00 · '+fmt(n)+' 条"></div><label>'+((i%3===0)?String(i).padStart(2,'0'):'')+'</label>';hours.appendChild(el)});
+    const typeMax=data.types[0][1], types=document.getElementById('types');data.types.forEach(([name,n])=>{types.insertAdjacentHTML('beforeend','<div class="row"><div class="row-label">'+name+'</div><div class="track"><div class="fill" style="width:'+(n/typeMax*100)+'%"></div></div><div class="row-value">'+fmt(n)+'</div></div>')});
+    const contactMax=data.contacts[0][1], contacts=document.getElementById('contacts');data.contacts.forEach(([name,n])=>{contacts.insertAdjacentHTML('beforeend','<div class="row"><div class="row-label" title="'+name+'">'+name+'</div><div class="track"><div class="fill" style="width:'+(n/contactMax*100)+'%"></div></div><div class="row-value">'+fmt(n)+'</div></div>')});
+    const top4=data.contacts.slice(0,4).reduce((a,d)=>a+d[1],0);document.getElementById('insight-one').textContent=(top4/data.total*100).toFixed(1)+'%';document.getElementById('insight-two').textContent=(data.received/data.total*100).toFixed(1)+'%';document.getElementById('insight-three').textContent='10:00';
+  </script>
+</body>
+</html>
