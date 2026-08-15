@@ -443,7 +443,7 @@ python3 extract_trending.py --config config.yaml --top 30 --min-groups 3 --min-c
 - 跨群门槛：3+ 群（不再用 5+，因为过滤了大类词后具体话题覆盖群数自然更少）
 
 **噪音过滤层级**：
-1. **tokenize 阶段**：过滤微信号/用户名（`user12345`、`name88ab` 的字母+数字混合模式），XML 属性名，短停用词
+1. **tokenize 阶段**：过滤微信号/用户名（`gavin8800`、`candy520nznf` 的字母+数字混合模式），XML 属性名，短停用词
 2. **大类词过滤**：`_GENERIC_WORDS` 黑名单过滤 claude/gpt/ai 等泛化词（bigram 形式保留）
 3. **停用词表**：表情词（撇嘴/呲牙）、碎片 bigram（神的孩子在跳舞/子在跳舞）、通用词（小时/老板）
 

@@ -114,13 +114,13 @@ python3 extract_trending.py --config ~/wechat-assistant/config.yaml
 规则：
 - 同一个产品/概念的不同叫法（如 "dify" → "Dify", "comfyui" → "ComfyUI"）
 - 新出现的 AI 工具/模型名需要归到已有父话题或创建新话题
-- **人名/用户名/群昵称**（如 user_one, user12345, user_two, 张三, 李四）标记为 `"__IGNORE__"`，这样它们会被完全过滤
+- **人名/用户名/群昵称**（如 heimuking, gavin8800, liur, 白水, 小零件）标记为 `"__IGNORE__"`，这样它们会被完全过滤
 - 不要重复种子映射中已有的 alias（`topic_aliases.seed_count` 显示已有数量）
 
 操作：如果发现需要合并的新 alias，写一个 JSON 文件到 `/tmp/new_aliases.json`：
 
 ```json
-{"aliases": {"dify": "Dify", "comfyui": "ComfyUI", "suno": "AI音乐", "user_one": "__IGNORE__", "user_two": "__IGNORE__"}}
+{"aliases": {"dify": "Dify", "comfyui": "ComfyUI", "suno": "AI音乐", "heimuking": "__IGNORE__", "liur": "__IGNORE__"}}
 ```
 
 然后执行：
