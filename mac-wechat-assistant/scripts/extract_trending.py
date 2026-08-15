@@ -343,7 +343,7 @@ def _tokenize(text):
             continue
         if w.startswith('wxid_') or '_' in w and len(w) > 12:
             continue
-        # 过滤微信号/用户名模式：含数字+字母混合，像 name88ab, user12345
+        # 过滤微信号/用户名模式：含数字+字母混合，像 user12345, name88ab
         if re.match(r'^[a-z]+\d+[a-z]*\d*$', w) and len(w) > 5:
             continue
         if re.match(r'^[a-z]+[_-]\w+$', w) and len(w) > 6:
